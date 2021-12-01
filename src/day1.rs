@@ -1,28 +1,39 @@
+use extend::ext;
 use itertools::Itertools;
 
-fn day1_part1(input: &str) -> i32 {
-    let (_, count): (i32, i32) = input
-        .split_whitespace()
-        .map(|s| s.parse::<i32>().unwrap())
-        .fold((i32::MAX, 0), |(prev, count), elem| (elem, if elem > prev { count + 1} else { count }));
+#[ext]
+impl str {
+    fn prepare(&self) -> std::iter::Map<std::str::SplitWhitespace<'_>, for<'r> fn(&'r str) -> i32> {
+        self.split_whitespace().map(|s| s.parse::<i32>().unwrap())
+    }
+}
 
-    count
+#[ext]
+impl<T: Sized + Iterator<Item = i32>> T {
+    fn get_answer(&mut self) -> i32 {
+        self.fold((i32::MAX, 0), |(prev, count), elem| {
+            (elem, if elem > prev { count + 1 } else { count })
+        })
+        .1
+    }
+}
+
+fn day1_part1(input: &str) -> i32 {
+    input.prepare().get_answer()
 }
 
 fn day1_part2(input: &str) -> i32 {
-    let (_, count): (i32, i32) = input
-        .split_whitespace()
-        .map(|s| s.parse::<i32>().unwrap())
+    input
+        .prepare()
         .tuple_windows::<(_, _, _)>()
-        .fold((i32::MAX, 0), |(prev, count), (a, b, c)| (a + b + c, if a + b + c > prev { count + 1 } else { count }));
-
-    count
+        .map(|(a, b, c)| a + b + c)
+        .get_answer()
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use super::*;
+    use std::fs;
 
     #[test]
     fn day1_part1_smoke() {
